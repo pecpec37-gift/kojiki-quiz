@@ -253,7 +253,16 @@
     .gcard .gdesc{min-height:3.4em;}
   }
   @media(max-width:360px){.genres{grid-template-columns:1fr;}}
+  /* ===== 対戦モード：開始カウントダウン ===== */
+  #bt-go-overlay{position:fixed;inset:0;z-index:99999;background:rgba(18,14,10,.96);color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
+  #bt-go-overlay.show{display:flex;}
+  #bt-go-info{font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:21px;margin-bottom:18px;color:#e7b84a;letter-spacing:.04em;}
+  #bt-go-num{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:92px;line-height:1;color:#fff;animation:btgo 1s infinite;}
+  #bt-go-label{font-size:12px;letter-spacing:.2em;color:rgba(255,255,255,.6);margin-top:16px;}
+  @keyframes btgo{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.6;}}
 </style>
+<!-- 対戦モード共有ライブラリ -->
+<script src="https://pecpec37-gift.github.io/portal/battle.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -338,10 +347,11 @@
     <div class="rank-label" id="rank-label"></div>
     <div class="wrong-wrap" id="wrong-wrap"></div>
     <div class="res-actions">
-      <button class="pri" onclick="retryGame()">もう一度 ▶</button>
-      <button class="study-btn" id="res-study" onclick="studyThisGenre()">📖 この巻を学習する</button>
-      <button class="sec" onclick="showRankingFrom()">🏆 ランキング</button>
-      <button class="sec" onclick="showScreen('screen-top')">🏠 TOPへ</button>
+      <button class="pri" id="kojiki-battle-result" style="display:none" onclick="goBattleResult()">⚔️ 対戦結果を見る</button>
+      <button class="pri bt-normal" onclick="retryGame()">もう一度 ▶</button>
+      <button class="study-btn bt-normal" id="res-study" onclick="studyThisGenre()">📖 この巻を学習する</button>
+      <button class="sec bt-normal" onclick="showRankingFrom()">🏆 ランキング</button>
+      <button class="sec bt-normal" onclick="showScreen('screen-top')">🏠 TOPへ</button>
     </div>
   </div>
 
@@ -409,6 +419,13 @@
 </div>
 
 <button class="quit" id="quit-btn" onclick="quitToTop()" style="display:none;">やめる ✕</button>
+
+<!-- 対戦モード：開始カウントダウン -->
+<div id="bt-go-overlay">
+  <div id="bt-go-info">⛩️ 古事記クイズ道場で対戦！</div>
+  <div id="bt-go-num">3</div>
+  <div id="bt-go-label">まもなく開始します</div>
+</div>
 <div id="toast"></div>
 <a class="portal" href="https://pecpec37-gift.github.io/portal/">← ポータルにもどる</a>
 
@@ -653,6 +670,14 @@ function endGame(){
   }
   document.getElementById('res-study').textContent=(currentGenre.id==='omakase')?'📖 全巻を学習する':'📖 この巻を学習する';
   saveRanking(currentGenre.id,playerName,total,correctCount);
+
+  // 対戦モード：スコアをポータルへ送信し、結果ボタンを切り替える
+  if(window.__BATTLE && window.__BATTLE.active && window.TomyBattle){
+    try{ TomyBattle.submitScore(window.__BATTLE.matchId, total, correctCount+'/10問正解'); }catch(e){}
+    var _brb=document.getElementById('kojiki-battle-result'); if(_brb)_brb.style.display='';
+    document.querySelectorAll('.res-actions .bt-normal').forEach(function(b){ b.style.display='none'; });
+  }
+
   showScreen('screen-result');
 }
 
@@ -758,6 +783,33 @@ function loadName(){try{return localStorage.getItem('kojiki-quiz-name')||'';}cat
 
 /* ---------- 初期化 ---------- */
 buildGenres();
+
+/* ===== 対戦モード（ポータルから ?battle=1 で遷移してくる） ===== */
+window.__BATTLE=null;
+function goBattleResult(){
+  var mid=(window.__BATTLE&&window.__BATTLE.matchId)||'';
+  location.href='https://pecpec37-gift.github.io/portal/?battleResult='+encodeURIComponent(mid);
+}
+function __initBattle(){
+  var p; try{ p=new URLSearchParams(location.search); }catch(e){ return; }
+  if(p.get('battle')!=='1') return;
+  var matchId=p.get('match'), genreId=p.get('genre'), nm=p.get('name');
+  if(!matchId) return;
+  window.__BATTLE={active:true,matchId:matchId};
+  if(nm && window.TomyBattle){ try{ TomyBattle.setName(nm); }catch(e){} }
+  // 巻（ジャンル）を決定：omakase以外から。未知ならランダム
+  var real=GENRES.filter(function(g){return g.id!=='omakase';});
+  currentGenre=GENRES.find(function(g){return g.id===genreId;}) || real[Math.floor(Math.random()*real.length)];
+  var inp=document.getElementById('name-input'); if(inp && nm) inp.value=nm;
+  function begin(){ startGame(); }
+  var ov=document.getElementById('bt-go-overlay'), num=document.getElementById('bt-go-num'), info=document.getElementById('bt-go-info');
+  if(!ov||!num||!info){ begin(); return; }
+  info.textContent='⛩️ 古事記クイズ道場で対戦！（'+currentGenre.name+'）';
+  ov.classList.add('show');
+  var n=3; num.textContent=n;
+  var t=setInterval(function(){ n--; if(n<=0){ clearInterval(t); ov.classList.remove('show'); begin(); } else { num.textContent=n; } },1000);
+}
+if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',__initBattle); } else { __initBattle(); }
 </script>
 </body>
 </html>
