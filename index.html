@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⛩️ 古事記クイズ道場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sumi:#10172b;        /* 夜の高天原（紺青の闇） */
+    --sumi2:#182138;       /* パネル */
+    --sumi3:#212c49;
+    --washi:#f3ead3;       /* 生成りの和紙 */
+    --washi2:#e8dcbd;
+    --shu:#d8402f;         /* 朱（鳥居・判子） */
+    --shu-deep:#a82a1f;
+    --kin:#e7b84a;         /* 金 */
+    --kin-soft:#f2d488;
+    --kin-deep:#b88a33;
+    --ink:#2a2214;         /* 和紙上の墨文字 */
+    --ink-soft:#5c513b;
+    --text:#f2ead5;        /* 闇上の文字 */
+    --text2:#c3b690;
+    --text3:#8b8161;
+    --green:#4caf6e;
+    --line:rgba(231,184,74,.28);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(120% 70% at 50% -8%, #2a2340 0%, var(--sumi) 58%),
+      var(--sumi);
+    min-height:100dvh;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* 星（高天原の夜空） */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;
+    background-image:
+      radial-gradient(1.4px 1.4px at 12% 18%, #fff6, transparent),
+      radial-gradient(1.2px 1.2px at 78% 12%, #ffe9b0aa, transparent),
+      radial-gradient(1.6px 1.6px at 40% 30%, #fff5, transparent),
+      radial-gradient(1.1px 1.1px at 65% 42%, #fff4, transparent),
+      radial-gradient(1.3px 1.3px at 25% 60%, #ffe9b088, transparent),
+      radial-gradient(1.5px 1.5px at 88% 68%, #fff4, transparent),
+      radial-gradient(1.2px 1.2px at 52% 82%, #fff4, transparent),
+      radial-gradient(1.1px 1.1px at 8% 88%, #fff3, transparent);
+  }
+  .wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:clamp(14px,3.5vw,26px) clamp(13px,4vw,22px) 60px;}
+  .screen{display:none;animation:fade .34s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ====== 表紙（ヒーロー） ====== */
+  .crest{text-align:center;padding:clamp(18px,5vw,34px) 0 clamp(8px,2vw,16px);}
+  .crest .torii{font-size:clamp(30px,8vw,44px);color:var(--shu);text-shadow:0 0 22px rgba(216,64,47,.45);line-height:1;}
+  .crest .eyebrow{font-family:'Shippori Mincho B1',serif;font-weight:500;color:var(--kin);letter-spacing:.5em;font-size:clamp(11px,3vw,13px);margin:12px 0 6px;padding-left:.5em;}
+  .crest h1{
+    font-family:'Yuji Syuku',serif;font-weight:400;
+    font-size:clamp(40px,12vw,68px);letter-spacing:.06em;margin:2px 0 4px;
+    color:var(--washi);
+    text-shadow:0 2px 0 var(--shu-deep),0 0 30px rgba(231,184,74,.25);
+    animation:rise .9s cubic-bezier(.2,.7,.2,1) both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(16px) scale(.97);letter-spacing:.3em;}to{opacity:1;transform:none;}}
+  .crest .read{font-family:'Shippori Mincho B1',serif;font-weight:500;color:var(--text2);font-size:clamp(12px,3.4vw,15px);letter-spacing:.14em;margin-top:8px;}
+  .crest .read b{color:var(--kin-soft);font-weight:700;}
+
+  /* ルール巻物 */
+  .scroll{
+    background:linear-gradient(180deg,var(--washi),var(--washi2));
+    color:var(--ink);border-radius:4px;
+    padding:clamp(16px,4vw,22px) clamp(16px,4.5vw,26px);
+    margin:clamp(16px,4vw,24px) 0;
+    position:relative;box-shadow:0 10px 28px rgba(0,0,0,.4);
+    border-top:3px solid var(--shu);border-bottom:3px solid var(--shu);
+  }
+  .scroll::before,.scroll::after{content:'';position:absolute;left:-6px;right:-6px;height:6px;background:var(--shu-deep);border-radius:4px;}
+  .scroll::before{top:-9px;}.scroll::after{bottom:-9px;}
+  .scroll .rule-head{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:clamp(15px,4vw,18px);color:var(--shu-deep);margin-bottom:12px;letter-spacing:.05em;}
+  .rule-list{display:grid;gap:9px;}
+  .rule-row{display:flex;gap:10px;align-items:flex-start;font-size:clamp(13px,3.6vw,14.5px);line-height:1.55;}
+  .rule-row .k{flex:none;width:1.4em;text-align:center;}
+  .rule-row b{color:var(--shu-deep);}
+  .rule-row .yaru{color:var(--green);font-weight:700;}
+
+  /* ジャンル */
+  .sec-label{font-family:'Shippori Mincho B1',serif;font-weight:700;color:var(--kin);font-size:clamp(14px,3.8vw,16px);letter-spacing:.08em;margin:6px 0 4px;display:flex;align-items:center;gap:12px;}
+  .sec-label::after{content:'';flex:1;height:1px;background:var(--line);}
+  .sec-hint{color:var(--text2);font-size:12.5px;margin:6px 0 16px;letter-spacing:.02em;}
+  .genres{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:13px;}
+  .gcard{
+    position:relative;cursor:pointer;overflow:hidden;
+    background:linear-gradient(180deg,var(--washi),var(--washi2));
+    color:var(--ink);border-radius:5px;padding:18px 16px 16px;
+    box-shadow:0 6px 16px rgba(0,0,0,.35);
+    transition:transform .12s ease,box-shadow .12s ease;
+    border-left:5px solid var(--accent,var(--shu));
+  }
+  .gcard:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.45);}
+  .gcard:active{transform:translateY(-1px);}
+  .gcard .ico{font-size:30px;line-height:1;display:block;margin-bottom:8px;}
+  .gcard .gname{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:17px;margin-bottom:4px;letter-spacing:.03em;}
+  .gcard .gdesc{font-size:11.5px;color:var(--ink-soft);line-height:1.55;min-height:2.6em;}
+  .gcard .gcount{font-size:10.5px;color:var(--kin-deep);font-weight:700;letter-spacing:.04em;margin-top:8px;}
+  .gcard .go{position:absolute;top:13px;right:14px;font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:11px;color:var(--shu);opacity:0;transition:opacity .15s;}
+  .gcard:hover .go{opacity:1;}
+  .gcard.omakase{border-left-color:var(--kin);background:linear-gradient(135deg,#2a2340,var(--sumi2));color:var(--text);box-shadow:0 6px 18px rgba(231,184,74,.18),0 6px 16px rgba(0,0,0,.4);}
+  .gcard.omakase .gdesc{color:var(--text2);}
+  .gcard.omakase .gcount{color:var(--kin-soft);}
+
+  .btn-row{text-align:center;margin-top:22px;}
+  .link-btn{background:none;border:1px solid var(--line);color:var(--kin);font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:14px;padding:11px 22px;border-radius:40px;cursor:pointer;transition:background .15s,border-color .15s;}
+  .link-btn:hover{background:rgba(231,184,74,.1);border-color:var(--kin);}
+
+  /* ====== intro ====== */
+  .intro{max-width:460px;margin:clamp(24px,8vw,60px) auto 0;text-align:center;}
+  .intro .ii{font-size:56px;line-height:1;margin-bottom:8px;}
+  .intro .iname{font-family:'Yuji Syuku',serif;font-size:34px;color:var(--washi);margin-bottom:6px;letter-spacing:.05em;}
+  .intro .idesc{color:var(--text2);font-size:13.5px;line-height:1.7;margin-bottom:20px;}
+  .intro .mini-rule{background:var(--sumi2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.8;color:var(--text);text-align:left;margin-bottom:20px;}
+  .intro .mini-rule b{color:var(--kin-soft);}
+  .namelab{font-size:12px;color:var(--text2);text-align:left;margin:0 2px 6px;}
+  .name-input{width:100%;padding:13px 15px;border-radius:11px;border:1.5px solid var(--line);background:var(--sumi);color:var(--text);font-size:15px;font-family:inherit;margin-bottom:16px;}
+  .name-input:focus{outline:none;border-color:var(--kin);}
+  .big-btn{width:100%;padding:16px;border:none;border-radius:13px;background:linear-gradient(180deg,var(--shu),var(--shu-deep));color:#fff;font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:18px;letter-spacing:.08em;cursor:pointer;box-shadow:0 8px 20px rgba(216,64,47,.35);transition:filter .15s,transform .1s;}
+  .big-btn:hover{filter:brightness(1.07);}
+  .big-btn:active{transform:translateY(1px);}
+  .back-link{display:inline-block;margin-top:16px;background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit;}
+  .back-link:hover{color:var(--text2);}
+
+  /* ====== quiz ====== */
+  .qhead{display:flex;align-items:center;gap:12px;background:var(--sumi2);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:18px;}
+  .qnum{font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:14px;color:var(--kin);white-space:nowrap;}
+  .pbar{flex:1;height:7px;background:rgba(0,0,0,.35);border-radius:6px;overflow:hidden;}
+  .pfill{height:100%;background:linear-gradient(90deg,var(--kin),var(--shu));width:0;transition:width .3s ease;}
+  .qscore{font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:14px;color:var(--kin-soft);white-space:nowrap;}
+  .qtime-wrap{display:flex;align-items:baseline;gap:3px;white-space:nowrap;}
+  .qtime{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:26px;color:var(--green);min-width:38px;text-align:right;transition:color .3s;}
+  .qtime.danger{color:var(--shu);animation:tp .5s infinite alternate;}
+  @keyframes tp{to{opacity:.55;}}
+  .qtime-lab{font-size:11px;color:var(--text3);}
+
+  .qcard{background:linear-gradient(180deg,var(--washi),var(--washi2));color:var(--ink);border-radius:8px;padding:26px 22px;margin-bottom:18px;box-shadow:0 8px 22px rgba(0,0,0,.4);border-top:3px solid var(--kin);position:relative;}
+  .qcard .qtag{font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:11px;color:var(--shu);letter-spacing:.1em;margin-bottom:10px;}
+  .qtext{font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:clamp(17px,4.6vw,21px);line-height:1.7;letter-spacing:.02em;}
+
+  .choices{display:grid;gap:11px;}
+  .choice{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--sumi2);border:1.5px solid var(--line);color:var(--text);border-radius:13px;padding:16px 16px;font-size:clamp(15px,4vw,16px);font-weight:500;font-family:inherit;cursor:pointer;transition:border-color .12s,background .12s,transform .08s;}
+  .choice:hover{border-color:var(--kin);background:var(--sumi3);}
+  .choice:active{transform:scale(.99);}
+  .choice .lab{flex:none;width:28px;height:28px;border-radius:50%;background:rgba(231,184,74,.14);color:var(--kin);font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:14px;display:grid;place-items:center;}
+  .choice.correct{border-color:var(--green);background:rgba(76,175,110,.18);}
+  .choice.correct .lab{background:var(--green);color:#fff;}
+  .choice.wrong{border-color:var(--shu);background:rgba(216,64,47,.16);}
+  .choice.wrong .lab{background:var(--shu);color:#fff;}
+  .choice:disabled{cursor:default;}
+
+  /* 判定オーバーレイ（朱印演出） */
+  .overlay{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(10,12,24,.74);backdrop-filter:blur(3px);}
+  .overlay.show{display:flex;animation:fade .25s ease;}
+  .ov-card{width:100%;max-width:440px;background:linear-gradient(180deg,var(--washi),var(--washi2));color:var(--ink);border-radius:14px;padding:26px 22px 22px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.6);position:relative;}
+  .stamp{width:96px;height:96px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;font-family:'Yuji Syuku',serif;font-size:30px;letter-spacing:.04em;border:4px double currentColor;position:relative;animation:stamp .4s cubic-bezier(.2,1.5,.4,1) both;}
+  @keyframes stamp{0%{transform:scale(2.4) rotate(-18deg);opacity:0;}60%{opacity:1;}100%{transform:scale(1) rotate(-9deg);opacity:1;}}
+  .stamp.ok{color:var(--shu);text-shadow:0 1px 0 rgba(216,64,47,.3);}
+  .stamp.ng{color:var(--ink-soft);}
+  .ov-fb{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:15px;margin:4px 0 14px;}
+  .ov-fb .plus{color:var(--green);}
+  .ov-ans-lab{font-size:11px;color:var(--ink-soft);letter-spacing:.1em;margin-bottom:3px;}
+  .ov-ans{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:20px;color:var(--shu-deep);margin-bottom:12px;}
+  .ov-mean{font-size:13px;line-height:1.7;color:var(--ink-soft);background:rgba(216,64,47,.07);border-radius:9px;padding:11px 13px;text-align:left;margin-bottom:16px;}
+  .ov-next{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(180deg,var(--shu),var(--shu-deep));color:#fff;font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:16px;letter-spacing:.06em;cursor:pointer;}
+  .ov-next:active{transform:translateY(1px);}
+  .quit{position:fixed;top:14px;right:14px;z-index:30;background:rgba(24,33,56,.8);border:1px solid var(--line);color:var(--text2);font-size:12px;padding:7px 13px;border-radius:30px;cursor:pointer;font-family:inherit;}
+
+  /* ====== result ====== */
+  .res-genre{font-family:'Shippori Mincho B1',serif;font-weight:700;text-align:center;color:var(--kin);font-size:15px;margin-bottom:12px;letter-spacing:.04em;}
+  .res-box{background:var(--sumi2);border:1px solid var(--line);border-radius:18px;padding:28px 22px;text-align:center;margin-bottom:18px;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+  .res-emoji{font-size:44px;margin-bottom:4px;}
+  .res-total{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:64px;line-height:1;color:var(--kin);text-shadow:0 0 24px rgba(231,184,74,.3);}
+  .res-total small{font-size:20px;color:var(--text2);}
+  .res-lab{font-family:'Shippori Mincho B1',serif;font-size:12px;color:var(--text3);letter-spacing:.18em;margin:6px 0 16px;}
+  .res-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .rs{background:rgba(0,0,0,.22);border-radius:11px;padding:12px 6px;}
+  .rs .v{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:22px;}
+  .rs .v.g{color:var(--green);}.rs .v.k{color:var(--kin-soft);}.rs .v.s{color:var(--shu);}
+  .rs .l{font-size:10.5px;color:var(--text3);margin-top:2px;}
+  .rank-label{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:16px;text-align:center;margin:4px 0 16px;letter-spacing:.04em;}
+
+  .wrong-wrap{margin-bottom:20px;}
+  .wrong-head{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:14px;color:var(--kin);margin-bottom:12px;letter-spacing:.03em;}
+  .witem{background:linear-gradient(180deg,var(--washi),var(--washi2));color:var(--ink);border-radius:9px;padding:14px 15px;margin-bottom:10px;border-left:4px solid var(--shu);}
+  .witem .wq{font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:14px;line-height:1.6;margin-bottom:7px;}
+  .witem .wa{font-size:13px;}.witem .wa b{color:var(--shu-deep);}
+  .witem .wm{font-size:12px;color:var(--ink-soft);margin-top:5px;line-height:1.6;}
+  .allok{text-align:center;padding:22px;font-family:'Shippori Mincho B1',serif;font-weight:800;color:var(--green);font-size:16px;}
+
+  .res-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .res-actions button{flex:1;min-width:120px;padding:14px;border-radius:12px;font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:14px;cursor:pointer;border:1px solid var(--line);}
+  .res-actions .pri{background:linear-gradient(180deg,var(--shu),var(--shu-deep));color:#fff;border:none;}
+  .res-actions .study-btn{background:linear-gradient(180deg,var(--kin),var(--kin-deep));color:#2a2214;border:none;}
+  .res-actions .study-btn:hover{filter:brightness(1.06);}
+  .res-actions .sec{background:var(--sumi2);color:var(--kin);}
+
+  /* ====== 学習モード ====== */
+  .link-btn.study{background:linear-gradient(180deg,rgba(231,184,74,.16),rgba(231,184,74,.06));border-color:var(--kin);color:var(--kin-soft);}
+  .link-btn.study:hover{background:rgba(231,184,74,.2);}
+  .fc-answer{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s ease,opacity .3s ease,margin .3s ease;margin-top:0;border-top:1px dashed rgba(216,64,47,.35);}
+  .fc-answer.show{max-height:600px;opacity:1;margin-top:18px;padding-top:16px;}
+  .fc-ans-lab{font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:11px;color:var(--shu);letter-spacing:.12em;margin-bottom:4px;}
+  .fc-ans{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:clamp(20px,5.2vw,24px);color:var(--shu-deep);line-height:1.5;margin-bottom:12px;}
+  .fc-mean{font-size:13.5px;line-height:1.75;color:var(--ink-soft);background:rgba(216,64,47,.07);border-radius:9px;padding:12px 14px;}
+  .fc-reveal{width:100%;padding:15px;margin-bottom:14px;border:1.5px dashed var(--kin);border-radius:13px;background:rgba(231,184,74,.08);color:var(--kin-soft);font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:16px;letter-spacing:.05em;cursor:pointer;transition:background .15s;}
+  .fc-reveal:hover{background:rgba(231,184,74,.16);}
+  .fc-reveal.done{display:none;}
+  .fc-nav{display:flex;gap:10px;align-items:stretch;}
+  .fc-nav button{flex:1;padding:14px 6px;border-radius:12px;font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--sumi2);color:var(--text);transition:background .12s,opacity .12s;}
+  .fc-nav button:hover{background:var(--sumi3);}
+  .fc-nav .fc-next{background:linear-gradient(180deg,var(--shu),var(--shu-deep));color:#fff;border:none;}
+  .fc-nav .fc-shuffle{flex:none;padding:14px 14px;color:var(--kin-soft);}
+  .fc-nav button:disabled{opacity:.4;cursor:default;}
+
+  /* ====== ranking ====== */
+  .rank-row{display:flex;align-items:center;gap:12px;background:var(--sumi2);border:1px solid var(--line);border-radius:11px;padding:12px 15px;margin-bottom:8px;}
+  .rank-row.t1{border-color:var(--kin);background:linear-gradient(90deg,rgba(231,184,74,.14),var(--sumi2));}
+  .rank-pos{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:18px;width:28px;text-align:center;color:var(--text2);}
+  .rank-pos.g{color:var(--kin);}.rank-pos.s{color:#cdd3dd;}.rank-pos.b{color:#d89a63;}
+  .rank-name{flex:1;font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rank-cc{font-size:11px;color:var(--text3);}
+  .rank-sc{font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:19px;color:var(--kin-soft);}
+  .rank-date{font-size:10px;color:var(--text3);width:62px;text-align:right;}
+  .rank-empty{text-align:center;color:var(--text3);padding:30px 10px;font-size:14px;}
+  .rank-del{background:none;border:1px solid var(--line);color:var(--text3);font-size:12px;padding:8px 16px;border-radius:30px;cursor:pointer;font-family:inherit;}
+
+  /* トースト */
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(16px);z-index:60;background:var(--sumi3);color:var(--text);border:1px solid var(--line);padding:12px 22px;border-radius:40px;font-family:'Shippori Mincho B1',serif;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:all .28s;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.ok{border-color:var(--green);color:var(--kin-soft);}
+  #toast.ng{border-color:var(--shu);}
+
+  .portal{position:fixed;left:14px;bottom:14px;z-index:30;background:rgba(24,33,56,.82);border:1px solid var(--line);color:var(--text2);font-size:11.5px;padding:9px 14px;border-radius:30px;text-decoration:none;font-family:'Shippori Mincho B1',serif;font-weight:700;}
+  .portal:hover{color:var(--kin);}
+
+  @media(max-width:480px){
+    .genres{grid-template-columns:1fr 1fr;}
+    .res-actions button{min-width:calc(50% - 5px);}
+    .gcard .gdesc{min-height:3.4em;}
+  }
+  @media(max-width:360px){.genres{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 表紙 -->
+  <div id="screen-top" class="screen active">
+    <div class="crest">
+      <div class="torii">⛩</div>
+      <div class="eyebrow">日本最古の歴史書</div>
+      <h1>古事記クイズ道場</h1>
+      <div class="read">天地初めて發りし時 ——　<b>神々の物語</b>に挑め</div>
+    </div>
+
+    <div class="scroll">
+      <div class="rule-head">◆ 道場のおきて</div>
+      <div class="rule-list">
+        <div class="rule-row"><span class="k">⏱</span><span>制限時間は <b>30秒</b>。全<b>10問</b>の4択クイズ。</span></div>
+        <div class="rule-row"><span class="k">✅</span><span><span class="yaru">正解</span> → <b>+10点</b>　＆　のこり時間 <b>+5秒</b></span></div>
+        <div class="rule-row"><span class="k">❌</span><span>まちがい → <b>減点なし・時間ペナルティなし</b>（正解と解説が出る）</span></div>
+        <div class="rule-row"><span class="k">⏸</span><span>答えをえらんだら「次の問題へ→」を押すまで<b>タイム停止</b>。じっくり覚えよう。</span></div>
+        <div class="rule-row"><span class="k">🏆</span><span>のこり時間が、そのまま<b>ボーナス点</b>に！</span></div>
+        <div class="rule-row"><span class="k">📖</span><span>自信がないときは<b>学習モード</b>で、答えと解説をじっくり読める。</span></div>
+      </div>
+    </div>
+
+    <div class="sec-label">⛩️ 巻をえらんで挑戦</div>
+    <div class="sec-hint">カードをクリックするとスタート画面へ。「おまかせ」は全巻からランダムに出ます。</div>
+    <div class="genres" id="genres"></div>
+
+    <div class="btn-row" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="link-btn study" onclick="openStudy()">📖 学習モード</button>
+      <button class="link-btn" onclick="showRanking()">🏆 ランキング</button>
+    </div>
+  </div>
+
+  <!-- スタート -->
+  <div id="screen-intro" class="screen">
+    <div class="intro">
+      <span class="ii" id="intro-ico"></span>
+      <div class="iname" id="intro-name"></div>
+      <div class="idesc" id="intro-desc"></div>
+      <div class="mini-rule">
+        制限時間 <b>30秒</b> ／ 4択10問<br>
+        ✅ 正解 → <b>+10点・+5秒</b>　❌ まちがい → <b>減点なし</b><br>
+        ⏸ 答えたら「次の問題へ→」までタイム停止
+      </div>
+      <div class="namelab">なまえ（ランキングに出ます）</div>
+      <input class="name-input" id="name-input" type="text" maxlength="16" placeholder="プレーヤー名（入れなくてもOK）">
+      <button class="big-btn" onclick="startGame()">挑戦する ▶</button>
+      <br><button class="back-link" onclick="showScreen('screen-top')">← 巻えらびにもどる</button>
+    </div>
+  </div>
+
+  <!-- クイズ -->
+  <div id="screen-quiz" class="screen">
+    <div class="qhead">
+      <span class="qnum" id="qnum">其ノ一 / 10</span>
+      <div class="pbar"><div class="pfill" id="pfill"></div></div>
+      <span class="qscore" id="qscore">0点</span>
+      <span class="qtime-wrap"><span class="qtime" id="qtime">30</span><span class="qtime-lab">秒</span></span>
+    </div>
+    <div class="qcard">
+      <div class="qtag" id="qtag">問</div>
+      <div class="qtext" id="qtext"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+  </div>
+
+  <!-- 結果 -->
+  <div id="screen-result" class="screen">
+    <div class="res-genre" id="res-genre"></div>
+    <div class="res-box">
+      <div class="res-emoji" id="res-emoji">🎊</div>
+      <div class="res-total"><span id="res-total">0</span><small> 点</small></div>
+      <div class="res-lab">TOTAL</div>
+      <div class="res-stats">
+        <div class="rs"><div class="v g" id="res-correct">0</div><div class="l">正解数</div></div>
+        <div class="rs"><div class="v k" id="res-base">0</div><div class="l">基礎点</div></div>
+        <div class="rs"><div class="v s" id="res-bonus">+0</div><div class="l">時間ボーナス</div></div>
+      </div>
+    </div>
+    <div class="rank-label" id="rank-label"></div>
+    <div class="wrong-wrap" id="wrong-wrap"></div>
+    <div class="res-actions">
+      <button class="pri" onclick="retryGame()">もう一度 ▶</button>
+      <button class="study-btn" id="res-study" onclick="studyThisGenre()">📖 この巻を学習する</button>
+      <button class="sec" onclick="showRankingFrom()">🏆 ランキング</button>
+      <button class="sec" onclick="showScreen('screen-top')">🏠 TOPへ</button>
+    </div>
+  </div>
+
+  <!-- 学習モード：巻えらび -->
+  <div id="screen-study" class="screen">
+    <div class="crest" style="padding:clamp(14px,4vw,24px) 0 6px;">
+      <div class="eyebrow">学習モード</div>
+      <h1 style="font-size:clamp(30px,9vw,46px);">答えと解説で覚える</h1>
+      <div class="read">時間も採点もなし。<b>めくって</b>ゆっくり覚えよう。</div>
+    </div>
+    <div class="sec-label">📖 学ぶ巻をえらぶ</div>
+    <div class="sec-hint">カードをめくると答えと解説が出ます。すべての問題をじっくり読めます。</div>
+    <div class="genres" id="study-list"></div>
+    <div class="btn-row"><button class="link-btn" onclick="showScreen('screen-top')">← TOPにもどる</button></div>
+  </div>
+
+  <!-- 学習モード：フラッシュカード -->
+  <div id="screen-flashcard" class="screen">
+    <div class="qhead">
+      <span class="qnum" id="fc-genre">学習</span>
+      <div class="pbar"><div class="pfill" id="fc-fill"></div></div>
+      <span class="qscore" id="fc-count">1 / 10</span>
+    </div>
+    <div class="qcard">
+      <div class="qtag" id="fc-tag">問 1</div>
+      <div class="qtext" id="fc-q"></div>
+      <div class="fc-answer" id="fc-answer">
+        <div class="fc-ans-lab">こたえ</div>
+        <div class="fc-ans" id="fc-a"></div>
+        <div class="fc-mean" id="fc-m"></div>
+      </div>
+    </div>
+    <button class="fc-reveal" id="fc-reveal" onclick="revealCard()">▼ こたえと解説を見る</button>
+    <div class="fc-nav">
+      <button class="fc-prev" id="fc-prev" onclick="studyPrev()">← 前へ</button>
+      <button class="fc-shuffle" onclick="studyShuffle()">🔀 シャッフル</button>
+      <button class="fc-next" id="fc-next" onclick="studyNext()">次へ →</button>
+    </div>
+    <div class="btn-row"><button class="link-btn" onclick="openStudy()">← 巻えらびにもどる</button></div>
+  </div>
+
+  <!-- ランキング -->
+  <div id="screen-ranking" class="screen">
+    <div class="sec-label" id="rank-title">🏆 ランキング</div>
+    <div class="sec-hint">この端末に保存された記録（上位20位）</div>
+    <div id="ranking-list"></div>
+    <div class="btn-row" style="display:flex;gap:10px;justify-content:center;">
+      <button class="rank-del" onclick="deleteRanking()">🗑️ この巻の記録を消す</button>
+      <button class="link-btn" onclick="showScreen('screen-top')">← もどる</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 判定オーバーレイ -->
+<div id="overlay" class="overlay">
+  <div class="ov-card">
+    <div class="stamp" id="ov-stamp">正</div>
+    <div class="ov-fb" id="ov-fb"></div>
+    <div class="ov-ans-lab">正解</div>
+    <div class="ov-ans" id="ov-ans"></div>
+    <div class="ov-mean" id="ov-mean"></div>
+    <button class="ov-next" onclick="nextQuestion()">次の問題へ →</button>
+  </div>
+</div>
+
+<button class="quit" id="quit-btn" onclick="quitToTop()" style="display:none;">やめる ✕</button>
+<div id="toast"></div>
+<a class="portal" href="https://pecpec37-gift.github.io/portal/">← ポータルにもどる</a>
+
+<script>
+/* =========================================================
+   古事記クイズ道場
+   - 制限時間30秒 / 全10問 / 4択
+   - 正解 +10点 + 時間+5秒（「✅正解！ ＋5秒」）
+   - 不正解 減点なし・時間ペナルティなし
+   - 回答後〜「次の問題へ→」までタイマー停止（復習のため）
+   - 残り時間がそのままボーナス点
+   - 表示時に選択肢をシャッフル（正解位置の偏り防止）
+   ========================================================= */
+const START_TIME=30;
+const LS_KEY='kojiki-quiz-ranking-v1';
+
+const GENRES=[
+  {id:'omakase', ico:'🎲', name:'おまかせ出題', color:'#e7b84a', desc:'全ての巻からランダムに10問。腕だめしに。'},
+  {id:'kamiyo',  ico:'🌊', name:'国生み・神代', color:'#2f80ed', desc:'天地のはじまり・イザナギ／イザナミ・三貴子、そして古事記そのもの。'},
+  {id:'takama',  ico:'☀️', name:'天岩戸と大蛇', color:'#e7b84a', desc:'アマテラスの岩戸隠れ、スサノオのヤマタノオロチ退治。'},
+  {id:'izumo',   ico:'🐰', name:'出雲神話',     color:'#4caf6e', desc:'因幡の白兎、オオクニヌシの国づくり、そして国譲り。'},
+  {id:'tenson',  ico:'⛩️', name:'天孫降臨',     color:'#d8402f', desc:'ニニギの降臨、コノハナサクヤ、海幸山幸の日向三代。'},
+  {id:'jinmu',   ico:'🏹', name:'神武と英雄',   color:'#9b59b6', desc:'神武東征と初代天皇、英雄ヤマトタケルの物語。'},
+];
+
+/* q:問題文 / c:選択肢（先頭が正解・表示時シャッフル） / a:正解index(=0) / m:解説 */
+const DB={
+  kamiyo:[
+    {q:'古事記で、天地のはじめに高天原に最初に現れたとされる神は？', c:['天之御中主神（アメノミナカヌシ）','天照大神','伊邪那岐神','須佐之男命'], a:0, m:'造化三神のひとり。続いて高御産巣日神・神産巣日神が現れた。'},
+    {q:'国生み・神生みを行ったとされる、男女ペアの神は？', c:['イザナギとイザナミ','アマテラスとスサノオ','ニニギとコノハナサクヤ','オオクニヌシとスセリビメ'], a:0, m:'天つ神の命により、夫婦となって国土と多くの神々を生んだ。'},
+    {q:'イザナギ・イザナミが天の浮橋から海をかき混ぜたとされる矛の名は？', c:['天沼矛（あめのぬぼこ）','草薙剣','十拳剣','天羽々斬'], a:0, m:'したたり落ちた潮が固まって最初の島「おのころ島」になったとされる。'},
+    {q:'二神が生んだ、本州・四国・九州などの島々をまとめて何という？', c:['大八島（おおやしま）','高天原','葦原中国','常世の国'], a:0, m:'「大八島国」。日本の国土そのものを指す。'},
+    {q:'亡くなったイザナミが向かった、死者の世界を何という？', c:['黄泉の国（よみのくに）','高天原','常世の国','葦原中国'], a:0, m:'イザナギは妻を連れ戻しに行くが、変わり果てた姿を見て逃げ帰る。'},
+    {q:'黄泉から帰ったイザナギが、けがれを清めるために行ったことは？', c:['禊（みそぎ）','祈祷','占い','狩り'], a:0, m:'川で身を清める「禊」から、多くの神々が生まれた。'},
+    {q:'イザナギが禊で「左目」を洗ったときに生まれた神は？', c:['天照大神（アマテラス）','月読命','須佐之男命','大国主神'], a:0, m:'三貴子の筆頭。高天原を治めるよう命じられた。'},
+    {q:'イザナギが禊で「鼻」を洗ったときに生まれた神は？', c:['須佐之男命（スサノオ）','天照大神','月読命','邇邇芸命'], a:0, m:'海原を治めるよう命じられたが、母を慕って泣き続けた。'},
+    {q:'イザナギが禊で「右目」を洗ったときに生まれ、夜を治める神は？', c:['月読命（ツクヨミ）','天照大神','須佐之男命','猿田毘古神'], a:0, m:'アマテラス・スサノオと並ぶ三貴子のひとり。'},
+    {q:'稗田阿礼の暗誦をもとに、古事記を書き記したとされる人物は？', c:['太安万侶（おおのやすまろ）','舎人親王','藤原不比等','中臣鎌足'], a:0, m:'712年（和銅5年）に完成し、元明天皇に献上したとされる。'},
+    {q:'古事記の編纂を命じた（詔を出した）とされる天皇は？', c:['天武天皇','推古天皇','天智天皇','聖武天皇'], a:0, m:'稗田阿礼に誦習させ、のちに太安万侶が記録した。'},
+    {q:'古事記は、全部で何巻から成る？', c:['三巻（上・中・下）','一巻','二巻','全三十巻'], a:0, m:'上巻が神代、中・下巻が天皇の物語。三十巻は日本書紀。'},
+  ],
+  takama:[
+    {q:'弟スサノオの乱暴を怒ったアマテラスが、閉じこもった場所は？', c:['天岩戸（あまのいわと）','黄泉の国','根の国','常世の国'], a:0, m:'太陽神が隠れ、世界は闇に包まれてしまった。'},
+    {q:'アマテラスが岩戸に隠れたことで、世界はどうなった？', c:['闇に包まれた','大洪水になった','炎に包まれた','氷に閉ざされた'], a:0, m:'高天原も葦原中国も暗闇となり、災いが満ちた。'},
+    {q:'岩戸の前で舞を舞い、神々を大笑いさせた女神は？', c:['天宇受売命（アメノウズメ）','木花之佐久夜毘売','伊邪那美','須勢理毘売'], a:0, m:'その賑わいを不思議に思ったアマテラスが、岩戸を少し開けた。'},
+    {q:'アマテラスを誘い出すために用いられ、のちに三種の神器となった鏡は？', c:['八咫鏡（やたのかがみ）','草薙剣','八尺瓊勾玉','天沼矛'], a:0, m:'岩戸の外にかかげ、外の輝きをアマテラス自身に見せた。'},
+    {q:'高天原を追放されたスサノオが、出雲で退治した怪物は？', c:['八岐大蛇（ヤマタノオロチ）','土蜘蛛','鵺（ぬえ）','大鯰'], a:0, m:'八つの頭と八つの尾を持つ大蛇。毎年、娘を食べていた。'},
+    {q:'ヤマタノオロチの尾から出てきた、三種の神器のひとつは？', c:['草薙剣（くさなぎのつるぎ）','八咫鏡','天沼矛','十拳剣'], a:0, m:'別名「天叢雲剣」。スサノオがアマテラスに献上した。'},
+    {q:'スサノオがオロチから救い、妻とした女性は？', c:['櫛名田比売（クシナダヒメ）','木花之佐久夜毘売','天宇受売命','豊玉毘売'], a:0, m:'スサノオは彼女を櫛に変え、髪に挿して戦ったとされる。'},
+    {q:'スサノオがオロチに飲ませて酔わせた、強い酒の名は？', c:['八塩折之酒（やしおりのさけ）','神酒','甘酒','濁り酒'], a:0, m:'何度も繰り返し醸した濃い酒。酔ったところを斬り倒した。'},
+    {q:'アマテラスとスサノオが、互いの持ち物から神を生んで身の潔白を示した行いを何という？', c:['うけい（誓約）','みそぎ','のりと','はらえ'], a:0, m:'この誓約で、のちの天皇家につながる神々が生まれた。'},
+    {q:'スサノオが退治したヤマタノオロチの頭と尾は、いくつあったとされる？', c:['八つずつ','三つずつ','五つずつ','十ずつ'], a:0, m:'体には苔や木が生え、谷を八つも渡るほど巨大だったという。'},
+    {q:'皇室の祖神とされ、太陽（日）を司る女神は？', c:['天照大神','月読命','木花之佐久夜毘売','伊邪那美'], a:0, m:'伊勢神宮の内宮にまつられる、八百万の神の中心的存在。'},
+  ],
+  izumo:[
+    {q:'皮をはがれた「因幡の白兎」を助けた、心やさしい神は？', c:['大国主神（オオクニヌシ）','須佐之男命','建御雷神','邇邇芸命'], a:0, m:'兄弟神（八十神）が意地悪をする中、正しい治療法を教えた。'},
+    {q:'因幡の白兎が、海を渡るためにだましたとされる海の生き物は？', c:['鮫（わに）','鯨','亀','蛸'], a:0, m:'数を数えるふりをして背を踏んで渡ったが、最後にばれて皮をはがれた。'},
+    {q:'白兎に対して、オオクニヌシが教えた正しい手当ては？', c:['真水で洗い、蒲の花粉の上に寝転がる','海水でよく洗う','塩をすり込む','火であぶる'], a:0, m:'兄弟神は海水を教えて悪化させたが、オオクニヌシの方法で治った。'},
+    {q:'オオクニヌシの国づくりを手伝った、海の彼方から来た小さな神は？', c:['少名毘古那神（スクナビコナ）','建御雷神','事代主神','猿田毘古神'], a:0, m:'医薬や酒造の神ともされる。やがて常世の国へ去った。'},
+    {q:'高天原がオオクニヌシに迫った「国譲り」。交渉に派遣された武神は？', c:['建御雷神（タケミカヅチ）','建御名方神','邇邇芸命','事代主神'], a:0, m:'剣の神・雷の神。威力をもって国譲りを迫った。'},
+    {q:'国譲りに反対し、タケミカヅチと力くらべをして敗れ、諏訪へ逃れた神は？', c:['建御名方神（タケミナカタ）','事代主神','少名毘古那神','大物主神'], a:0, m:'この力くらべは相撲の起源のひとつとも語られる。諏訪大社にまつられる。'},
+    {q:'釣りをしていたところへ使者が来て、国譲りを承諾したオオクニヌシの子は？', c:['事代主神（コトシロヌシ）','建御名方神','少名毘古那神','邇邇芸命'], a:0, m:'えびす様と同一視されることもある神。'},
+    {q:'国譲りの代わりにオオクニヌシのために建てられた壮大な宮は、現在の何の起源とされる？', c:['出雲大社','伊勢神宮','諏訪大社','熊野大社'], a:0, m:'天にとどくほど高い宮殿だったと伝わる。'},
+    {q:'根の国でスサノオの試練を受けたオオクニヌシが、妻とした娘は？', c:['須勢理毘売（スセリビメ）','櫛名田比売','木花之佐久夜毘売','玉依毘売'], a:0, m:'スサノオの娘。オオクニヌシの正妻とされる。'},
+    {q:'オオクニヌシが治めていた「地上の国」を、古事記では何と呼ぶ？', c:['葦原中国（あしはらのなかつくに）','高天原','常世の国','黄泉の国'], a:0, m:'高天原と黄泉の国の間にある、人や国つ神が住む世界。'},
+    {q:'因幡の白兎に、最初に意地悪な治療法を教えたのは？', c:['八十神（やそがみ）','スサノオ','タケミカヅチ','海の神'], a:0, m:'オオクニヌシの大勢の兄弟神たち。彼らは因幡の姫に求婚する途中だった。'},
+  ],
+  tenson:[
+    {q:'アマテラスの命で、葦原中国を治めるため地上へ降りた孫の神は？', c:['邇邇芸命（ニニギ）','大国主神','神武天皇','倭建命'], a:0, m:'この出来事を「天孫降臨」という。'},
+    {q:'ニニギの降臨を、ひとことで何という？', c:['天孫降臨','国譲り','国生み','天岩戸'], a:0, m:'天つ神の孫が、高天原から地上へ降り立った神話。'},
+    {q:'ニニギが降り立ったとされる地は？', c:['筑紫の日向の高千穂','出雲','大和','熊野'], a:0, m:'宮崎・鹿児島のあたりとされ、諸説ある。'},
+    {q:'天孫降臨のとき、分かれ道で一行の道案内をした地上の神は？', c:['猿田毘古神（サルタヒコ）','建御雷神','事代主神','少名毘古那神'], a:0, m:'のちにアメノウズメと結ばれたと伝わる。'},
+    {q:'ニニギが地上で妻とした、美しい女神は？', c:['木花之佐久夜毘売（コノハナサクヤヒメ）','櫛名田比売','須勢理毘売','天宇受売命'], a:0, m:'富士山の神ともされる。一夜で身ごもった。'},
+    {q:'ニニギが送り返してしまった、コノハナサクヤヒメの姉は？', c:['石長比売（イワナガヒメ）','豊玉毘売','玉依毘売','須勢理毘売'], a:0, m:'「岩のような永遠の命」の象徴。返したことで天皇の寿命が有限になったと語られる。'},
+    {q:'兄の釣り針をなくし、海の神の宮へ行った弟の神（山幸彦）は？', c:['火遠理命（ホオリ）','火照命','邇邇芸命','神武天皇'], a:0, m:'兄は「海幸彦（火照命）」。海幸山幸の物語の主人公。'},
+    {q:'山幸彦が海神の宮で結ばれた、海の神の娘は？', c:['豊玉毘売（トヨタマビメ）','玉依毘売','木花之佐久夜毘売','石長比売'], a:0, m:'出産の姿を見られたことを恥じ、海へ帰ってしまう。'},
+    {q:'山幸彦が兄を懲らしめるため、海神から授かった二つの珠は？', c:['潮満珠・潮干珠','八尺瓊勾玉','草薙剣と八咫鏡','天沼矛'], a:0, m:'潮を満ちさせ、引かせる力を持つ珠。'},
+    {q:'海へ帰ったトヨタマビメに代わり、その子を育て妻となった妹は？', c:['玉依毘売（タマヨリビメ）','石長比売','木花之佐久夜毘売','須勢理毘売'], a:0, m:'この二人の子が、初代・神武天皇につながる。'},
+    {q:'天孫降臨でニニギに授けられた三種の神器に、含まれないものは？', c:['天沼矛','八咫鏡','草薙剣','八尺瓊勾玉'], a:0, m:'天沼矛は国生みの矛。三種の神器は鏡・剣・勾玉。'},
+  ],
+  jinmu:[
+    {q:'古事記に記される、初代天皇は？', c:['神武天皇','崇神天皇','応神天皇','仁徳天皇'], a:0, m:'和名は神倭伊波礼毘古命（カムヤマトイワレビコ）。'},
+    {q:'神武天皇が日向から大和を目指して東へ進んだ遠征を何という？', c:['神武東征','天孫降臨','国譲り','国生み'], a:0, m:'幾多の困難を越え、大和を平定して即位したと伝わる。'},
+    {q:'神武東征のとき、道案内をしたとされる三本足の大きなカラスは？', c:['八咫烏（やたがらす）','鵺','鳳凰','青鷺'], a:0, m:'熊野から大和への険しい山道を導いたとされる。'},
+    {q:'神武天皇が都を定め、即位したとされる地は？', c:['畝傍の橿原（かしはら）','出雲','高千穂','難波'], a:0, m:'大和（奈良）の地。橿原神宮はこの伝承にちなむ。'},
+    {q:'景行天皇の皇子で、各地の平定に活躍した英雄は？', c:['倭建命（ヤマトタケル）','神武天皇','大国主神','邇邇芸命'], a:0, m:'日本書紀では「日本武尊」と記される。'},
+    {q:'ヤマトタケルが女装して討ち取ったとされる、九州の兄弟は？', c:['熊曽建（クマソタケル）','出雲建','蝦夷','土蜘蛛'], a:0, m:'宴にまぎれ込み、油断させて倒した。このとき「ヤマトタケル」の名を贈られた。'},
+    {q:'ヤマトタケルがクマソ征伐のとき名乗っていた、もとの名は？', c:['小碓命（おうすのみこと）','大碓命','カムヤマトイワレビコ','火遠理命'], a:0, m:'双子の兄が大碓命。小碓命がのちのヤマトタケル。'},
+    {q:'東征の途中、火攻めにあったヤマトタケルが身を守った剣は？', c:['草薙剣','天沼矛','十拳剣','八咫鏡'], a:0, m:'燃えさかる草を薙ぎ払って脱出した。地名「焼津」の由来とも語られる。'},
+    {q:'海が荒れたとき、身を投げて海神を鎮めた、ヤマトタケルの妃は？', c:['弟橘比売（オトタチバナヒメ）','木花之佐久夜毘売','豊玉毘売','須勢理毘売'], a:0, m:'走水の海でのこと。おかげで一行は無事に渡ることができた。'},
+    {q:'伊吹山の神に敗れ力尽きたヤマトタケルは、死後、何になって飛び去ったと伝わる？', c:['白い鳥','龍','星','雲'], a:0, m:'白鳥となって大和の方へ飛んでいったという「白鳥伝説」。'},
+    {q:'ヤマトタケルゆかりの草薙剣が、現在まつられているとされる神社は？', c:['熱田神宮','伊勢神宮','出雲大社','諏訪大社'], a:0, m:'東征の際に預けたまま伊吹山へ向かい、剣はこの地に残された。'},
+  ],
+};
+
+/* ---------- 状態 ---------- */
+let currentGenre=null,questions=[],qIndex=0,score=0,correctCount=0;
+let timeLeft=START_TIME,timer=null,answered=false,wrongAnswers=[],playerName='';
+let curChoices=[],curCorrectIdx=-1,viewingGenreId=null,lastResult=null;
+
+/* ---------- ユーティリティ ---------- */
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.getElementById('quit-btn').style.display=(id==='screen-quiz')?'block':'none';window.scrollTo(0,0);}
+function poolOf(gid){return gid==='omakase'?GENRES.filter(g=>g.id!=='omakase').flatMap(g=>DB[g.id]):DB[gid];}
+
+/* ---------- トースト ---------- */
+let toastTimer=null;
+function showToast(msg,cls){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(cls||'');clearTimeout(toastTimer);toastTimer=setTimeout(hideToast,1600);}
+function hideToast(){document.getElementById('toast').className='';}
+
+/* ---------- 画面構築 ---------- */
+function buildGenres(){
+  document.getElementById('genres').innerHTML=GENRES.map(g=>{
+    const n=poolOf(g.id).length;
+    return `<div class="gcard ${g.id==='omakase'?'omakase':''}" style="--accent:${g.color};" onclick="selectGenre('${g.id}')">
+      <span class="ico">${g.ico}</span>
+      <div class="gname">${g.name}</div>
+      <div class="gdesc">${g.desc}</div>
+      <div class="gcount">全${n}問 ／ 10問ランダム</div>
+      <span class="go">挑む ▶</span>
+    </div>`;
+  }).join('');
+}
+function selectGenre(id){
+  currentGenre=GENRES.find(g=>g.id===id);
+  document.getElementById('intro-ico').textContent=currentGenre.ico;
+  document.getElementById('intro-name').textContent=currentGenre.name;
+  document.getElementById('intro-desc').textContent=currentGenre.desc;
+  const saved=loadName();const inp=document.getElementById('name-input');if(saved&&!inp.value)inp.value=saved;
+  showScreen('screen-intro');
+}
+
+/* ---------- ゲーム進行 ---------- */
+function startGame(){
+  playerName=document.getElementById('name-input').value.trim()||'名もなき挑戦者';
+  saveName(playerName);
+  questions=shuffle(poolOf(currentGenre.id)).slice(0,10);
+  qIndex=0;score=0;correctCount=0;wrongAnswers=[];
+  showScreen('screen-quiz');
+  showQuestion();
+  startTimer();
+}
+function retryGame(){showScreen('screen-intro');}
+function quitToTop(){
+  if(!confirm('途中でやめてTOPに戻りますか？\n（このゲームのスコアは記録されません）'))return;
+  clearInterval(timer);document.getElementById('overlay').classList.remove('show');hideToast();
+  showScreen('screen-top');
+}
+
+/* タイマー（回答後は停止、「次の問題へ」で再開） */
+function startTimer(){clearInterval(timer);timeLeft=START_TIME;updateTimer();runTimer();}
+function runTimer(){clearInterval(timer);timer=setInterval(()=>{timeLeft--;if(timeLeft<=0){timeLeft=0;updateTimer();clearInterval(timer);endGame();return;}updateTimer();},1000);}
+function pauseTimer(){clearInterval(timer);}
+function updateTimer(){const el=document.getElementById('qtime');el.textContent=timeLeft;el.className='qtime'+(timeLeft<=10?' danger':'');}
+
+function showQuestion(){
+  const q=questions[qIndex];answered=false;
+  document.getElementById('qnum').textContent=`其ノ${qIndex+1} / 10`;
+  document.getElementById('pfill').style.width=`${(qIndex/10)*100}%`;
+  document.getElementById('qscore').textContent=`${score}点`;
+  document.getElementById('qtag').textContent=`問 ${qIndex+1}`;
+  document.getElementById('qtext').textContent=q.q;
+  // 選択肢をシャッフルして出題
+  const pairs=q.c.map((text,i)=>({text,correct:i===(q.a||0)}));
+  curChoices=shuffle(pairs);
+  curCorrectIdx=curChoices.findIndex(p=>p.correct);
+  const lab=['一','二','三','四'];
+  document.getElementById('choices').innerHTML=curChoices.map((p,i)=>
+    `<button class="choice" onclick="answer(${i})"><span class="lab">${lab[i]}</span>${escapeHtml(p.text)}</button>`
+  ).join('');
+}
+
+function answer(idx){
+  if(answered)return;answered=true;
+  pauseTimer();
+  const q=questions[qIndex];
+  const btns=document.querySelectorAll('.choice');
+  btns.forEach(b=>b.disabled=true);
+  btns[curCorrectIdx].classList.add('correct');
+  if(idx!==curCorrectIdx)btns[idx].classList.add('wrong');
+  const isCorrect=(idx===curCorrectIdx);
+  const correctAns=curChoices[curCorrectIdx].text;
+  const userAns=curChoices[idx].text;
+  setTimeout(()=>showResult(isCorrect,correctAns,userAns,q.q,q.m),550);
+}
+
+function showResult(isCorrect,correctAns,userAns,qText,mean){
+  if(isCorrect){score+=10;correctCount++;timeLeft=Math.min(timeLeft+5,999);}
+  else{wrongAnswers.push({q:qText,a:correctAns,m:mean||''});}
+  updateTimer();
+  document.getElementById('qscore').textContent=`${score}点`;
+  const stamp=document.getElementById('ov-stamp');
+  stamp.textContent=isCorrect?'正':'否';
+  stamp.className='stamp '+(isCorrect?'ok':'ng');
+  if(isCorrect){
+    document.getElementById('ov-fb').innerHTML='<span class="plus">✅ 正解！　+10点　のこり時間 ＋5秒</span>';
+    showToast('✅正解！ ＋5秒','ok');
+  }else{
+    document.getElementById('ov-fb').innerHTML=`あなたの答え：「${escapeHtml(userAns)}」（減点なし）`;
+    showToast('❌ ざんねん（減点なし）','ng');
+  }
+  document.getElementById('ov-ans').textContent=correctAns;
+  document.getElementById('ov-mean').innerHTML=mean?('💡 '+escapeHtml(mean)):'';
+  document.getElementById('overlay').classList.add('show');
+}
+
+function nextQuestion(){
+  document.getElementById('overlay').classList.remove('show');hideToast();
+  qIndex++;
+  if(qIndex>=10){clearInterval(timer);endGame();}
+  else{showQuestion();runTimer();}
+}
+
+function endGame(){
+  clearInterval(timer);
+  document.getElementById('overlay').classList.remove('show');hideToast();
+  const bonus=Math.max(timeLeft,0);
+  const base=correctCount*10;
+  const total=base+bonus;
+  lastResult={genre:currentGenre.id,total,correct:correctCount};
+  document.getElementById('res-genre').textContent=currentGenre.ico+' '+currentGenre.name;
+  document.getElementById('res-emoji').textContent=correctCount>=9?'🏆':correctCount>=6?'🎊':correctCount>=3?'💪':'🔰';
+  document.getElementById('res-total').textContent=total;
+  document.getElementById('res-correct').textContent=correctCount;
+  document.getElementById('res-base').textContent=base;
+  document.getElementById('res-bonus').textContent='+'+bonus;
+
+  let label;
+  if(correctCount>=10)label='🏆 全問正解！ 古事記の神々もうなる達人！';
+  else if(correctCount>=8)label='🌟 おみごと！ 神話に詳しいですね';
+  else if(correctCount>=5)label='👍 なかなかの腕前！ もう一息';
+  else label='📖 これから覚えていきましょう！';
+  document.getElementById('rank-label').textContent=label;
+
+  const ws=document.getElementById('wrong-wrap');
+  if(wrongAnswers.length>0){
+    ws.innerHTML=`<div class="wrong-head">📝 まちがえた問題（${wrongAnswers.length}問）— ここでしっかり覚えよう</div>`+
+      wrongAnswers.map(w=>`<div class="witem"><div class="wq">${escapeHtml(w.q)}</div><div class="wa">正解：<b>${escapeHtml(w.a)}</b></div>${w.m?`<div class="wm">💡 ${escapeHtml(w.m)}</div>`:''}</div>`).join('');
+  }else{
+    ws.innerHTML='<div class="allok">🎉 まちがいなし！ お見事！</div>';
+  }
+  document.getElementById('res-study').textContent=(currentGenre.id==='omakase')?'📖 全巻を学習する':'📖 この巻を学習する';
+  saveRanking(currentGenre.id,playerName,total,correctCount);
+  showScreen('screen-result');
+}
+
+/* ---------- ランキング（localStorage） ---------- */
+function readRanking(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}catch(e){return {};}}
+function saveRanking(gid,name,sc,correct){
+  const data=readRanking();
+  if(!data[gid])data[gid]=[];
+  data[gid].push({name,score:sc,correct,date:new Date().toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'})});
+  data[gid].sort((a,b)=>b.score-a.score);
+  data[gid]=data[gid].slice(0,20);
+  try{localStorage.setItem(LS_KEY,JSON.stringify(data));}catch(e){}
+}
+function renderRanking(gid){
+  viewingGenreId=gid;
+  const g=GENRES.find(x=>x.id===gid)||GENRES[0];
+  document.getElementById('rank-title').textContent=`🏆 ${g.ico} ${g.name}｜ランキング`;
+  const rows=(readRanking()[gid])||[];
+  const list=document.getElementById('ranking-list');
+  if(!rows.length){list.innerHTML='<div class="rank-empty">まだ記録がありません。<br>最初の記録をつくろう！</div>';return;}
+  list.innerHTML=rows.map((r,i)=>{
+    const pos=i+1;const pc=pos===1?'g':pos===2?'s':pos===3?'b':'';
+    return `<div class="rank-row ${pos===1?'t1':''}"><span class="rank-pos ${pc}">${pos}</span><span class="rank-name">${escapeHtml(r.name)}</span><span class="rank-cc">${r.correct}/10</span><span class="rank-sc">${r.score}</span><span class="rank-date">${r.date||''}</span></div>`;
+  }).join('');
+}
+function showRanking(){renderRanking(viewingGenreId||(currentGenre&&currentGenre.id)||'omakase');showScreen('screen-ranking');}
+function showRankingFrom(){renderRanking(currentGenre?currentGenre.id:'omakase');showScreen('screen-ranking');}
+function deleteRanking(){
+  const gid=viewingGenreId||'omakase';
+  const g=GENRES.find(x=>x.id===gid);
+  if(!confirm(`「${g?g.name:gid}」の記録を全部消しますか？`))return;
+  const data=readRanking();delete data[gid];
+  try{localStorage.setItem(LS_KEY,JSON.stringify(data));}catch(e){}
+  renderRanking(gid);
+}
+
+/* ---------- 学習モード（フラッシュカード） ---------- */
+let studyGenre=null,studyCards=[],studyIdx=0,studyShuffled=false;
+function studyPool(gid){return gid==='all'?GENRES.filter(g=>g.id!=='omakase').flatMap(g=>DB[g.id]):DB[gid];}
+function openStudy(){
+  const opts=[{id:'all',ico:'📚',name:'すべての巻',color:'#e7b84a',desc:'全ての問題をまとめて学習します。'}]
+    .concat(GENRES.filter(g=>g.id!=='omakase'));
+  document.getElementById('study-list').innerHTML=opts.map(g=>{
+    const n=studyPool(g.id).length;
+    return `<div class="gcard ${g.id==='all'?'omakase':''}" style="--accent:${g.color};" onclick="startStudy('${g.id}')">
+      <span class="ico">${g.ico}</span>
+      <div class="gname">${g.name}</div>
+      <div class="gdesc">${g.desc}</div>
+      <div class="gcount">全${n}問を学習</div>
+      <span class="go">学ぶ ▶</span>
+    </div>`;
+  }).join('');
+  showScreen('screen-study');
+}
+function startStudy(gid){
+  studyGenre=gid;studyShuffled=false;
+  studyCards=studyPool(gid).map(q=>({q:q.q,a:q.c[q.a||0],m:q.m||''}));
+  studyIdx=0;
+  renderCard();
+  showScreen('screen-flashcard');
+}
+function studyShuffle(){
+  studyShuffled=!studyShuffled;
+  studyCards=shuffle(studyCards);
+  studyIdx=0;renderCard();
+  showToast(studyShuffled?'🔀 順番をシャッフルしました':'🔀 シャッフルしました','ok');
+}
+function genreName(gid){if(gid==='all')return '📚 すべての巻';const g=GENRES.find(x=>x.id===gid);return g?g.ico+' '+g.name:'学習';}
+function renderCard(){
+  const c=studyCards[studyIdx];const total=studyCards.length;
+  document.getElementById('fc-genre').textContent=genreName(studyGenre);
+  document.getElementById('fc-count').textContent=`${studyIdx+1} / ${total}`;
+  document.getElementById('fc-fill').style.width=`${((studyIdx+1)/total)*100}%`;
+  document.getElementById('fc-tag').textContent=`問 ${studyIdx+1}`;
+  document.getElementById('fc-q').textContent=c.q;
+  document.getElementById('fc-a').textContent=c.a;
+  document.getElementById('fc-m').innerHTML=c.m?('💡 '+escapeHtml(c.m)):'';
+  // こたえは隠した状態にリセット
+  document.getElementById('fc-answer').classList.remove('show');
+  document.getElementById('fc-reveal').classList.remove('done');
+  document.getElementById('fc-prev').disabled=(studyIdx===0);
+  document.getElementById('fc-next').textContent=(studyIdx===total-1)?'おわり ✓':'次へ →';
+  window.scrollTo(0,0);
+}
+function revealCard(){
+  document.getElementById('fc-answer').classList.add('show');
+  document.getElementById('fc-reveal').classList.add('done');
+}
+function studyNext(){
+  if(studyIdx>=studyCards.length-1){openStudy();showToast('📖 この巻を学習しました！','ok');return;}
+  studyIdx++;renderCard();
+}
+function studyPrev(){if(studyIdx>0){studyIdx--;renderCard();}}
+/* クイズ結果画面から、同じ巻をそのまま学習 */
+function studyThisGenre(){
+  const gid=(currentGenre&&currentGenre.id!=='omakase')?currentGenre.id:'all';
+  startStudy(gid);
+}
+
+/* 名前の保存（この端末） */
+function saveName(n){try{localStorage.setItem('kojiki-quiz-name',n);}catch(e){}}
+function loadName(){try{return localStorage.getItem('kojiki-quiz-name')||'';}catch(e){return '';}}
+
+/* ---------- 初期化 ---------- */
+buildGenres();
+</script>
+</body>
+</html>
